@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "display7seg.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -97,7 +97,8 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  /* USER CODE BEGIN 3 */
+
+    /* USER CODE BEGIN 3 */
 /* Parte A ------------------------------------------------------------------*/
 	  /* HAL_GPIO_TogglePin(GPIOA, LD1_Pin);
 	  	  HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
@@ -114,6 +115,9 @@ int main(void)
 
 /* Modulo 3 ------------------------------------------------------------------*/
 	  Read_Button_Task();
+
+/* Modulo 3 ------------------------------------------------------------------*/
+	  // Display_Contador_Task();
   }
   /* USER CODE END 3 */
 }

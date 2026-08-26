@@ -1,7 +1,7 @@
 ../Core/Src/main.c:67:5:main	1
-../Core/Src/main.c:125:6:SystemClock_Config	3
-../Core/Src/main.c:168:6:Leds_Temporizados	5
-../Core/Src/main.c:189:6:Auto_Fantastico	4
-../Core/Src/main.c:211:6:Contador_Binario	2
-../Core/Src/main.c:227:6:Read_Button_Task	5
-../Core/Src/main.c:262:6:Error_Handler	1
+../Core/Src/main.c:128:6:SystemClock_Config	3
+../Core/Src/main.c:171:6:Leds_Temporizados	5
+../Core/Src/main.c:192:6:Auto_Fantastico	4
+../Core/Src/main.c:214:6:Contador_Binario	2
+../Core/Src/main.c:230:6:Read_Button_Task	5
+../Core/Src/main.c:265:6:Error_Handler	1

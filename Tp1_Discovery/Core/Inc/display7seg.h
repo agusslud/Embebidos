@@ -13,13 +13,15 @@
 #define DISPLAY_LATCH_PORT	GPIOD
 #define DISPLAY_LATCH_PIN	GPIO_PIN_9
 
-#define DISPLAY_CLK_PORT	GPIOD
-#define DISPLAY_CLK_PIN	GPIO_PIN_10
+#define DISPLAY_CLK_PORT		GPIOD
+#define DISPLAY_CLK_PIN		GPIO_PIN_10
 
 #define DISPLAY_DATA_PORT	GPIOD
-#define DISPLAY_DATA_PIN	GPIO_PIN_11
+#define DISPLAY_DATA_PIN		GPIO_PIN_11
 
-void ShiftRegister_SendByte(uint8_t byte_data);
+void Display_Send16Bits(uint8_t byte_segmentos, uint8_t byte_digito);
+void Display_SetNumber(uint16_t valor);
+void Display_Refresh_Task(void);
 void Display_Contador_Task(void);
 
 #endif /* INC_DISPLAY7SEG_H_ */

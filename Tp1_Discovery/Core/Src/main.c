@@ -22,7 +22,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "efectos.h"
 #include "display7seg.h"
+#include "boton.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,10 +51,7 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-void Leds_Temporizados(void);
-void Auto_Fantastico(void);
-void Contador_Binario(void);
-void Read_Button_Task(void);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -94,6 +93,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  HAL_GPIO_WritePin(GPIOD, Buzzer_Pin, GPIO_PIN_SET);
   while (1)
   {
     /* USER CODE END WHILE */
@@ -114,10 +114,11 @@ int main(void)
 	  // Contador_Binario();
 
 /* Modulo 3 ------------------------------------------------------------------*/
-	  Read_Button_Task();
+	  // Read_Button_Task();
 
 /* Modulo 3 ------------------------------------------------------------------*/
-	  // Display_Contador_Task();
+	  Display_Refresh_Task();
+	  Display_Contador_Task();
   }
   /* USER CODE END 3 */
 }
@@ -169,94 +170,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-void Leds_Temporizados(void){
-	static uint32_t tLed1 = 0, tLed2 = 0, tLed3 = 0, tLed4 = 0;
 
-	uint32_t now = HAL_GetTick();
-	if ((now - tLed1) >= 250) {
-		tLed1 = now;
-		HAL_GPIO_TogglePin(GPIOD, LD6_Pin);
-	}
-	if ((now - tLed2) >= 500) {
-		tLed2 = now;
-		HAL_GPIO_TogglePin(GPIOD, LD4_Pin);
-	}
-	if ((now - tLed3) >= 750) {
-		tLed3 = now;
-		HAL_GPIO_TogglePin(GPIOD, LD3_Pin);
-	}
-	if ((now - tLed4) >= 1000) {
-		tLed4 = now;
-		HAL_GPIO_TogglePin(GPIOD, LD5_Pin);
-	}
-}
-void Auto_Fantastico(void){
-	static int8_t AfPos = 0;
-	static int8_t AfDir = 1;
-	static uint32_t AutoFantastico = 0;
-
-	uint32_t now = HAL_GetTick();
-	if (now - AutoFantastico >= 500) {
-		AutoFantastico = now;
-
-		HAL_GPIO_WritePin(GPIOD, LD6_Pin, (AfPos == 0) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOD, LD4_Pin, (AfPos == 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOD, LD3_Pin, (AfPos == 2) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOD, LD5_Pin, (AfPos == 3) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-
-		AfPos += AfDir;
-		if (AfPos == 3) {
-			AfDir = -1;
-		} else if (AfPos == 0) {
-			AfDir = 1;
-		}
-	}
-}
-void Contador_Binario(void){
-	static int8_t binCounter = 0;
-	static uint32_t tBinCounter = 0;
-
-	uint32_t now = HAL_GetTick();
-	if (now - tBinCounter >= 1000) {
-		tBinCounter = now;
-
-		HAL_GPIO_WritePin(GPIOD, LD6_Pin, (binCounter & 0x01) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOD, LD4_Pin, (binCounter & 0x02) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOD, LD3_Pin, (binCounter & 0x04) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOD, LD5_Pin, (binCounter & 0x08) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-
-		binCounter = (binCounter + 1) & 0xF;
-	}
-}
-void Read_Button_Task(void){
-	GPIO_PinState estado_actual = HAL_GPIO_ReadPin(GPIOA, B1_Pin);
-
-	static GPIO_PinState estado_anterior = GPIO_PIN_RESET;
-	static GPIO_PinState estado_valido = GPIO_PIN_RESET;
-	static uint32_t tiempo_ultimo_cambio = 0;
-
-	if (estado_actual != estado_anterior) {
-		tiempo_ultimo_cambio = HAL_GetTick();
-	}
-	if ((HAL_GetTick() - tiempo_ultimo_cambio) > 50) {
-		if (estado_actual != estado_valido) {
-			estado_valido = estado_actual;
-		}
-	}
-
-	if (estado_valido == GPIO_PIN_SET) {
-		HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
-	}else {
-		HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
-	}
-	estado_anterior = estado_actual;
-}
 /* USER CODE END 4 */
 
 /**

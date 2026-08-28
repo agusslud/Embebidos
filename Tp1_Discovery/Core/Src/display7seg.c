@@ -21,10 +21,10 @@ static const uint8_t Tabla_7Seg[10] = {
 };
 
 static const uint8_t Mascara_Digitos[4] = {
-		~0x01, // Derecha
-		~0x02,
-		~0x04,
-		~0x08 // Izquierda
+		0x08, // Derecha
+		0x04,
+		0x02,
+		0x01 // Izquierda
 };
 
 static uint16_t numero_actual = 0;
@@ -63,7 +63,7 @@ void Display_Refresh_Task(void){
 	uint32_t now = HAL_GetTick();
 
 	if ((now - t_refresco) >= 2) {
-		t_refresco = now;
+		t_refresco += 2;
 
 		uint8_t digito_val = 0;
 
@@ -87,7 +87,7 @@ void Display_Contador_Task(void){
 	uint32_t now = HAL_GetTick();
 
 	if ((now - t_segundo) >= 1000) {
-		t_segundo = now;
+		t_segundo += 1000;
 
 		contador++;
 		if (contador > 9999) contador = 0;

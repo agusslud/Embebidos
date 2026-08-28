@@ -60,8 +60,8 @@ all: main-build
 main-build: Tp1_Discovery.elf secondary-outputs
 
 # Tool invocations
-Tp1_Discovery.elf Tp1_Discovery.map: $(OBJS) $(USER_OBJS) C:\Users\agust\OneDrive\Documentos\ST-projects\Tp1_Discovery\STM32F407VGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "Tp1_Discovery.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\agust\OneDrive\Documentos\ST-projects\Tp1_Discovery\STM32F407VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Tp1_Discovery.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Tp1_Discovery.elf Tp1_Discovery.map: $(OBJS) $(USER_OBJS) /home/aguss/Embebidos/Tp1_Discovery/STM32F407VGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "Tp1_Discovery.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/home/aguss/Embebidos/Tp1_Discovery/STM32F407VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Tp1_Discovery.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

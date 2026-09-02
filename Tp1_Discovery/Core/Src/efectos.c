@@ -13,19 +13,19 @@ void Leds_Temporizados(void){
 	uint32_t now = HAL_GetTick();
 	if ((now - tLed1) >= 250) {
 		tLed1 = now;
-		HAL_GPIO_TogglePin(GPIOD, LD6_Pin);
+		HAL_GPIO_TogglePin(GPIOD, Led1_Pin);
 	}
 	if ((now - tLed2) >= 500) {
 		tLed2 = now;
-		HAL_GPIO_TogglePin(GPIOD, LD4_Pin);
+		HAL_GPIO_TogglePin(GPIOD, Led2_Pin);
 	}
 	if ((now - tLed3) >= 750) {
 		tLed3 = now;
-		HAL_GPIO_TogglePin(GPIOD, LD3_Pin);
+		HAL_GPIO_TogglePin(GPIOD, Led3_Pin);
 	}
 	if ((now - tLed4) >= 1000) {
 		tLed4 = now;
-		HAL_GPIO_TogglePin(GPIOD, LD5_Pin);
+		HAL_GPIO_TogglePin(GPIOD, Led4_Pin);
 	}
 }
 
@@ -38,10 +38,10 @@ void Auto_Fantastico(void){
 	if (now - AutoFantastico >= 500) {
 		AutoFantastico = now;
 
-		HAL_GPIO_WritePin(GPIOD, LD6_Pin, (AfPos == 0) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOD, LD4_Pin, (AfPos == 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOD, LD3_Pin, (AfPos == 2) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOD, LD5_Pin, (AfPos == 3) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOD, Led1_Pin, (AfPos == 0) ? GPIO_PIN_RESET : GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOD, Led2_Pin, (AfPos == 1) ? GPIO_PIN_RESET : GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOD, Led3_Pin, (AfPos == 2) ? GPIO_PIN_RESET : GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOD, Led4_Pin, (AfPos == 3) ? GPIO_PIN_RESET : GPIO_PIN_SET);
 
 		AfPos += AfDir;
 		if (AfPos == 3) {
@@ -60,10 +60,10 @@ void Contador_Binario(void){
 	if (now - tBinCounter >= 1000) {
 		tBinCounter = now;
 
-		HAL_GPIO_WritePin(GPIOD, LD6_Pin, (binCounter & 0x01) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOD, LD4_Pin, (binCounter & 0x02) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOD, LD3_Pin, (binCounter & 0x04) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOD, LD5_Pin, (binCounter & 0x08) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOD, Led4_Pin, (binCounter & 0x01) ? GPIO_PIN_RESET : GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOD, Led3_Pin, (binCounter & 0x02) ? GPIO_PIN_RESET : GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOD, Led2_Pin, (binCounter & 0x04) ? GPIO_PIN_RESET : GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOD, Led1_Pin, (binCounter & 0x08) ? GPIO_PIN_RESET : GPIO_PIN_SET);
 
 		binCounter = (binCounter + 1) & 0xF;
 	}

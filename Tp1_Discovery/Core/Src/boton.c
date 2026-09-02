@@ -6,33 +6,41 @@
  */
 
 #include "boton.h"
+#include "display7seg.h"
+
+uint8_t modo_efecto_leds = 0;
 
 void Read_Button_Task(void){
-	GPIO_PinState estado_actual = HAL_GPIO_ReadPin(GPIOA, B1_Pin);
+	static uint32_t t_debounce_s1 = 0, t_debounce_s2 = 0, t_debounce_s3 = 0;
+	static GPIO_PinState ant_s1 = GPIO_PIN_SET, ant_s2 = GPIO_PIN_SET, ant_s3 = GPIO_PIN_SET;
+	uint32_t now = HAL_GetTick();
 
-	static GPIO_PinState estado_anterior = GPIO_PIN_RESET;
-	static GPIO_PinState estado_valido = GPIO_PIN_RESET;
-	static uint32_t tiempo_ultimo_cambio = 0;
+	GPIO_PinState act_s1 = HAL_GPIO_ReadPin(GPIOC, BTN_1_Pin);
+	if (act_s1 != ant_s1 && (now - t_debounce_s1) > 50) {
+		t_debounce_s1 = now;
+		ant_s1 = act_s1;
 
-	if (estado_actual != estado_anterior) {
-		tiempo_ultimo_cambio = HAL_GetTick();
-	}
-	if ((HAL_GetTick() - tiempo_ultimo_cambio) > 50) {
-		if (estado_actual != estado_valido) {
-			estado_valido = estado_actual;
+		if (act_s1 == GPIO_PIN_RESET) {
+			Display_SetNumber(0);
 		}
 	}
 
-	if (estado_valido == GPIO_PIN_SET) {
-		HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
-	}else {
-		HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
+	GPIO_PinState act_s2 = HAL_GPIO_ReadPin(GPIOC, BTN_2_Pin);
+	if (act_s2 != ant_s2 && (now - t_debounce_s2) > 50) {
+		t_debounce_s2 = now;
+		ant_s2 = act_s2;
+
+		if (act_s2 == GPIO_PIN_RESET) {
+			modo_efecto_leds = 1;
+		}
 	}
-	estado_anterior = estado_actual;
+
+	GPIO_PinState act_s3 = HAL_GPIO_ReadPin(GPIOA, BTN_3_Pin);
+	if (act_s3 != ant_s3 && (now - t_debounce_s3) > 50) {
+		t_debounce_s3 = now;
+		ant_s3 = act_s3;
+		if (act_s3 == GPIO_PIN_RESET) {
+			modo_efecto_leds = 2;
+		}
+	}
 }

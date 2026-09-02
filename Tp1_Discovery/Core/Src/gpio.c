@@ -75,7 +75,7 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, Buzzer_Pin|DISPLAY_LATCH_Pin|DISPLAY_CLK_Pin|DISPLAY_DATA_Pin
-                          |LD4_Pin|LD3_Pin|LD5_Pin|LD6_Pin
+                          |Led2_Pin|Led1_Pin|Led3_Pin|Led4_Pin
                           |Audio_RST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : CS_I2C_SPI_Pin */
@@ -137,10 +137,10 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(CLK_IN_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : Buzzer_Pin DISPLAY_LATCH_Pin DISPLAY_CLK_Pin DISPLAY_DATA_Pin
-                           LD4_Pin LD3_Pin LD5_Pin LD6_Pin
+                           Led2_Pin Led1_Pin Led3_Pin Led4_Pin
                            Audio_RST_Pin */
   GPIO_InitStruct.Pin = Buzzer_Pin|DISPLAY_LATCH_Pin|DISPLAY_CLK_Pin|DISPLAY_DATA_Pin
-                          |LD4_Pin|LD3_Pin|LD5_Pin|LD6_Pin
+                          |Led2_Pin|Led1_Pin|Led3_Pin|Led4_Pin
                           |Audio_RST_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;

@@ -82,16 +82,13 @@ void Display_Refresh_Task(void){
 }
 
 void Display_Contador_Task(void){
-	static uint16_t contador = 0;
 	static uint32_t t_segundo = 0;
 	uint32_t now = HAL_GetTick();
 
 	if ((now - t_segundo) >= 1000) {
 		t_segundo += 1000;
 
-		contador++;
-		if (contador > 9999) contador = 0;
-
-		Display_SetNumber(contador);
+		numero_actual++;
+		if (numero_actual > 9999) numero_actual = 0;
 	}
 }

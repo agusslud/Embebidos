@@ -25,6 +25,7 @@
 #include "efectos.h"
 #include "display7seg.h"
 #include "boton.h"
+#include "buzzer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,7 +46,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+extern uint8_t modo_efecto_leds;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -93,32 +94,26 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  HAL_GPIO_WritePin(GPIOD, Buzzer_Pin, GPIO_PIN_SET);
+  Buzzer_Init();
+
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-/* Parte A ------------------------------------------------------------------*/
-	  /* HAL_GPIO_TogglePin(GPIOA, LD1_Pin);
-	  	  HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
-	  	  HAL_GPIO_TogglePin(GPIOA, LD3_Pin);
-	  	  HAL_GPIO_TogglePin(GPIOB, LD4_Pin);
-
-	  	  HAL_Delay(200);*/
-/* Parte B ------------------------------------------------------------------*/
-	  // Leds_Temporizados();
-
-/* Parte C ------------------------------------------------------------------*/
-	  // Auto_Fantastico();
-	  // Contador_Binario();
-
-/* Modulo 3 ------------------------------------------------------------------*/
-	  // Read_Button_Task();
-
-/* Modulo 3 ------------------------------------------------------------------*/
 	  Display_Refresh_Task();
 	  Display_Contador_Task();
+	  Read_Button_Task();
+
+	  if (modo_efecto_leds == 1) {
+		  Auto_Fantastico();
+	} else if (modo_efecto_leds == 2) {
+		Contador_Binario();
+	} else {
+		HAL_GPIO_WritePin(GPIOD, Led1_Pin | Led2_Pin | Led3_Pin | Led4_Pin, GPIO_PIN_SET);
+	}
+
+	  Buzzer_Alarm_Task();
   }
   /* USER CODE END 3 */
 }

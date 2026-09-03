@@ -23,7 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "display7seg.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -44,7 +44,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+volatile uint16_t contador_global = 0;
+volatile uint8_t duty_cycle_led = 0;
+volatile uint8_t buzzer_active = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -91,9 +93,13 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
+  HAL_GPIO_WritePin(GPIOD, BUZZER_Pin, GPIO_PIN_SET);
+
   HAL_TIM_Base_Start_IT(&htim2);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
   HAL_TIM_Base_Start_IT(&htim4);
+
+  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 99);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -103,6 +109,28 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  Display_Refresh_Task();
+
+	  static uint32_t t_debounce_s1 = 0;
+	  static GPIO_PinState ant_s1 = GPIO_PIN_SET;
+	  GPIO_PinState act_s1 = HAL_GPIO_ReadPin(GPIOC, BTN_S1_Pin);
+
+	  if (act_s1 != ant_s1 && (HAL_GetTick() - t_debounce_s1) >= 50) {
+		  t_debounce_s1 = HAL_GetTick();
+		  ant_s1 = act_s1;
+
+		  if (act_s1 == GPIO_PIN_RESET) {
+			duty_cycle_led += 10;
+
+			if (duty_cycle_led > 99) {
+				duty_cycle_led = 0;
+			}
+
+			uint8_t duty_real = 99 - duty_cycle_led;
+
+			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, duty_real);
+		}
+	}
   }
   /* USER CODE END 3 */
 }
@@ -154,7 +182,32 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	if (htim->Instance == TIM2) {
+		static uint8_t ticks = 0;
+		ticks++;
 
+		if (ticks >= 2) {
+			ticks = 0;
+
+			contador_global++;
+			if (contador_global > 9999) contador_global = 0;
+
+			Display_SetNumber(contador_global);
+		}
+
+		if (buzzer_active) {
+			buzzer_active = 0;
+
+			HAL_GPIO_WritePin(GPIOD, BUZZER_Pin, GPIO_PIN_SET);
+		}
+	}
+
+	if (htim->Instance == TIM4) {
+		HAL_GPIO_WritePin(GPIOD, BUZZER_Pin, GPIO_PIN_RESET);
+		buzzer_active = 1;
+	}
+}
 /* USER CODE END 4 */
 
 /**

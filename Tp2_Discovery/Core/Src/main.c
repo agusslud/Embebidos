@@ -188,22 +188,27 @@ void Dimmer_Task(void) {
 
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
 	if (htim->Instance == TIM4 && htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) {
-		static uint32_t t_inicial = 0;
-		static uint8_t es_primer_flanco = 1;
+		static uint32_t val_inicial = 0;
+		static uint8_t esperando_liberacion = 0;
 
-		if (es_primer_flanco) {
-			t_inicial = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
-			es_primer_flanco = 0;
+		if (!esperando_liberacion) {
+			val_inicial = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1); // Ocurrio un flanco de bajada
+
+			__HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING); // Se cambia el flanco de lectura
+			esperando_liberacion = 1;
 		} else {
-			uint32_t t_final = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+			uint32_t val_final = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1); // Ocurrio un flanco de subida
 
-			if (t_final >= t_inicial) {
-				t_presionado_ms = t_final - t_inicial;
+			// Calcula la diferencia en ms considerando el desbordamiento
+			if (val_final >= val_inicial) {
+				t_presionado_ms = val_final - val_inicial;
 			} else {
-				t_presionado_ms = (65535 - t_inicial) + t_final;
+				t_presionado_ms = (65535 - val_inicial) + val_final;
 			}
 
-			es_primer_flanco = 1;
+			// Volvemos a cambiar el flanco de lectura
+			__HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING);
+			esperando_liberacion = 0;
 		}
 	}
 }

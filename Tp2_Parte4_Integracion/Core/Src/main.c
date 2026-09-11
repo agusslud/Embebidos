@@ -98,6 +98,7 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim2);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
   HAL_TIM_Base_Start_IT(&htim4);
+  HAL_TIM_IC_Start_IT(&htim4, TIM_CHANNEL_3);
 
   __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 99);
   /* USER CODE END 2 */
@@ -110,27 +111,6 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  Display_Refresh_Task();
-
-	  static uint32_t t_debounce_s1 = 0;
-	  static GPIO_PinState ant_s1 = GPIO_PIN_SET;
-	  GPIO_PinState act_s1 = HAL_GPIO_ReadPin(GPIOC, BTN_S1_Pin);
-
-	  if (act_s1 != ant_s1 && (HAL_GetTick() - t_debounce_s1) >= 50) {
-		  t_debounce_s1 = HAL_GetTick();
-		  ant_s1 = act_s1;
-
-		  if (act_s1 == GPIO_PIN_RESET) {
-			duty_cycle_led += 10;
-
-			if (duty_cycle_led > 99) {
-				duty_cycle_led = 0;
-			}
-
-			uint8_t duty_real = 99 - duty_cycle_led;
-
-			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, duty_real);
-		}
-	}
   }
   /* USER CODE END 3 */
 }
@@ -206,6 +186,28 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if (htim->Instance == TIM4) {
 		HAL_GPIO_WritePin(GPIOD, BUZZER_Pin, GPIO_PIN_RESET);
 		buzzer_active = 1;
+	}
+}
+
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
+	if (htim->Instance == TIM4 && htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3) {
+		static uint8_t esperando_liberacion = 0;
+
+		if (!esperando_liberacion) {
+			duty_cycle_led += 10;
+
+			if (duty_cycle_led > 99) {
+				duty_cycle_led = 0;
+			}
+			uint8_t duty_real = 99 - duty_cycle_led;
+			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, duty_real);
+
+			__HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_3, TIM_INPUTCHANNELPOLARITY_RISING);
+			esperando_liberacion = 1;
+		} else {
+			__HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_3, TIM_INPUTCHANNELPOLARITY_FALLING);
+			esperando_liberacion = 0;
+		}
 	}
 }
 /* USER CODE END 4 */

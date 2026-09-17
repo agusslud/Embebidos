@@ -19,21 +19,26 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "tim.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "boton.h"
+#include "display7seg.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+typedef enum {
+	MODO_POTENCIOMETRO = 0,
+	MODO_TEMPERATURA = 1
+} ModoLectura_t;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define MUESTRAS_FILTRO	16
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -44,15 +49,33 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint32_t adc_value = 0;
-float voltage = 0.0f;
-float temperature = 0.0f;
+volatile ModoLectura_t modo_actual = MODO_POTENCIOMETRO;
+volatile uint8_t filtro_activo = 0; // 0 = Medicion directa, 1 = Promedio (16 muestras)
+
+// Variables para ADC1 (Potenciometro)
+volatile uint8_t adc1_ready = 0;
+uint32_t adc1_value = 0;
+uint32_t adc1_acumulador = 0;
+uint8_t adc1_muestras = 0;
+
+// Variables para ADC2 (Sensor de temperatura)
+volatile uint8_t adc2_ready = 0;
+uint32_t adc2_value = 0;
+uint32_t adc2_acumulador = 0;
+uint8_t adc2_muestras = 0;
+
+// Variables procesadas
+float voltage_pot = 0.0f;
+float voltage_temp = 0.0f;
+float temperature_c = 0.0f;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+void Accion_Boton_S1(void);
+void Accion_Boton_S2(void);
+void Accion_Boton_S3(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -90,25 +113,73 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_ADC1_Init();
+  MX_TIM2_Init();
+  MX_ADC2_Init();
   /* USER CODE BEGIN 2 */
+  Button_Init();
+  Button_SetAction_S1(Accion_Boton_S1);
+  Button_SetAction_S2(Accion_Boton_S2);
+  Button_SetAction_S3(Accion_Boton_S3);
 
+  HAL_TIM_Base_Start_IT(&htim2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  Read_Button_Task();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  HAL_ADC_Start(&hadc1);
-	  HAL_ADC_PollForConversion(&hadc1, 10);
-	  adc_value = HAL_ADC_GetValue(&hadc1);
-	  HAL_ADC_Stop(&hadc1);
+	  if (adc1_ready) {
+		  adc1_ready = 0;
 
-	  voltage = ((float)adc_value * 3.3f) / 4095.0f;
+		  if (filtro_activo) {
+			  adc1_acumulador += adc1_value;
+			  adc1_muestras++;
 
-	  temperature = (voltage - 0.5f) * 100.0f;
+			  if (adc1_muestras >= MUESTRAS_FILTRO) {
+				  uint32_t prom = adc1_acumulador / MUESTRAS_FILTRO;
+				  adc1_acumulador = 0;
+				  adc1_muestras = 0;
+
+				  voltage_pot = ((float)prom * 3.3f) / 4095.0f;
+
+				  Display_SetNumberWithDP((uint16_t)(voltage_pot * 1000.0f), 3);
+			  }
+		  } else {
+			  voltage_pot = ((float)adc1_value * 3.3f) / 4095.0f;
+			  Display_SetNumberWithDP((uint16_t)(voltage_pot * 1000.0f), 3);
+		  }
+	  }
+
+	  if (adc2_ready) {
+		  adc2_ready = 0;
+
+		  if (filtro_activo) {
+			  adc2_acumulador += adc2_value;
+			  adc2_muestras++;
+
+			  if (adc2_muestras >= MUESTRAS_FILTRO) {
+				  uint32_t prom = adc2_acumulador / MUESTRAS_FILTRO;
+				  adc2_acumulador = 0;
+				  adc2_muestras = 0;
+
+				  voltage_temp = ((float)prom * 3.3f) / 4095.0f;
+				  temperature_c = (voltage_temp - 0.5f) * 100.0f;
+
+				  Display_SetNumberWithDP((uint16_t)(temperature_c * 10.0f), 1);
+			}
+		} else {
+			voltage_temp = ((float)adc2_value * 3.3f) / 4095.0f;
+			temperature_c = (voltage_temp - 0.5f) * 100.0f;
+
+			Display_SetNumberWithDP((uint16_t)(temperature_c * 10.0f), 1);
+		}
+	}
+
+	  Display_Refresh_Task();
   }
   /* USER CODE END 3 */
 }
@@ -160,7 +231,30 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+// Esta interrupcion ocurre cada 100 ms
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	if (htim->Instance == TIM2) {
+		if (modo_actual == MODO_POTENCIOMETRO) {
+			HAL_ADC_Start_IT(&hadc1); // Potenciometro (PA0)
+		} else {
+			HAL_ADC_Start_IT(&hadc2); // Sensor de Temperatura (PA1)
+		}
+	}
+}
 
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc){
+	if (hadc->Instance == ADC1) {
+		adc1_value = HAL_ADC_GetValue(hadc);
+		adc1_ready = 1;
+	} else if (hadc->Instance == ADC2) {
+		adc2_value = HAL_ADC_GetValue(hadc);
+		adc2_ready = 1;
+	}
+}
+
+void Accion_Boton_S1(void){ modo_actual = MODO_POTENCIOMETRO; }
+void Accion_Boton_S2(void){ modo_actual = MODO_TEMPERATURA; }
+void Accion_Boton_S3(void){ filtro_activo = !filtro_activo; }
 /* USER CODE END 4 */
 
 /**
